@@ -16,7 +16,7 @@ rust-embed = "8.3.0"
 serde = { version = "1.0.198", features = ["derive"] }
 serde_json = "1.0.116"
 strsim = "0.11.0"
-er-save-lib = {path = "../er-save-lib"}
+er-save-lib = {git = "https://github.com/ClayAmore/ER-Save-Lib.git"}
 chrono = "0.4.38"
 
 [build-dependencies]

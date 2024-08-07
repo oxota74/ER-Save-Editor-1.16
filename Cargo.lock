@@ -1534,6 +1534,7 @@ dependencies = [
 [[package]]
 name = "er-save-lib"
 version = "0.1.0"
+source = "git+https://github.com/ClayAmore/ER-Save-Lib.git#2753ac0a0734d2d5e9f87e803ef83c34b473792c"
 dependencies = [
  "aes",
  "cbc",
