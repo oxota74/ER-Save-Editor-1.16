@@ -106,7 +106,6 @@ fn main() -> Result<(), eframe::Error> {
 pub struct App {
     save_api: Option<SaveApi>,      // Save Api
     vm: ViewModel,                  // ViewModel from the save data
-    backup_dir: Option<PathBuf>,    // Directory containing backup saves
     picked_path: PathBuf,           // Path to current save file for future use when opening dialogs
     current_route: Route,           // Current in app view
     importer_vm: ImporterViewModel, // ViewModel used for the importer
@@ -118,7 +117,6 @@ impl App {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         Self {
             save_api: None,
-            backup_dir: None,
             picked_path: Default::default(),
             current_route: Route::None,
             vm: ViewModel::default(),
@@ -154,8 +152,6 @@ impl App {
 
                 // Create directories for the backups if they don't exist
                 create_dir_all(&backup_path)?;
-
-                self.backup_dir = Some(backup_path.clone());
             } else {
                 return Err(SaveApiError::IoError(std::io::Error::new(
                     std::io::ErrorKind::NotFound,

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{ops::Deref, rc::Rc};
 
 use eframe::egui::{self, Color32, Layout, Ui};
 
@@ -89,7 +89,7 @@ pub(crate) fn single_customization(ui: &mut Ui, inventory_vm: &mut InventoryView
         );
         ui.add_space(8.);
 
-        match &inventory_vm.add_vm.selected_item {
+        match inventory_vm.add_vm.selected_item.clone() {
             // No customization needed for these item categories
             SelectedItem::None
             | SelectedItem::Armor(_)
@@ -155,7 +155,7 @@ pub(crate) fn single_customization(ui: &mut Ui, inventory_vm: &mut InventoryView
 
                         // Draw available ash of war Infusions combo box if there's any
                         if item.as_ref().borrow().is_infusable() {
-                            ui.add(egui::Label::new("Ash Of War:"));
+                            ui.label("Ash of War:");
                             if inventory_vm.add_vm.available_infusions.len() > 0 {
                                 if egui::ComboBox::new("infsuion", "")
                                     .show_index(
@@ -173,9 +173,22 @@ pub(crate) fn single_customization(ui: &mut Ui, inventory_vm: &mut InventoryView
                                         },
                                     )
                                     .changed()
-                                {};
+                                {
+                                    inventory_vm.add_vm.infusion_changed();
+                                };
                             }
                             ui.end_row();
+                        }
+
+                        // Draw available affinity combo box if there's any
+                        if inventory_vm.add_vm.selected_infusion != 0 {
+                            ui.label("Affinity:");
+                            egui::ComboBox::new("affinity", "").show_index(
+                                ui,
+                                &mut inventory_vm.add_vm.selected_affinity,
+                                inventory_vm.add_vm.available_affinities.len(),
+                                |i| inventory_vm.add_vm.available_affinities[i].to_string(),
+                            );
                         }
                     });
             }

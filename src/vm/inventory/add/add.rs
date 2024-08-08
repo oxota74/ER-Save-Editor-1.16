@@ -7,7 +7,7 @@ use er_save_lib::{
 };
 use strsim::sorensen_dice;
 
-use super::{filter::ParamFilter, item_param::ItemParam};
+use super::{affinity::Affinity, filter::ParamFilter, item_param::ItemParam};
 
 #[derive(Default, PartialEq)]
 pub(crate) enum AddTypeRoute {
@@ -24,7 +24,7 @@ pub(crate) struct ParamHeader {
     pub(crate) item_type: ItemType,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub(crate) enum SelectedItem {
     #[default]
     None,
@@ -50,6 +50,7 @@ pub(crate) struct AddViewModel {
     pub(crate) selected_weapon_level: u8,
     pub(crate) selected_gem: u8,
     pub(crate) selected_infusion: usize,
+    pub(crate) selected_affinity: usize,
 
     // Params
     pub(crate) items: Vec<Rc<RefCell<ItemParam<EquipParamGoods>>>>,
@@ -61,6 +62,7 @@ pub(crate) struct AddViewModel {
     // List used in view
     pub(crate) current_list: Vec<Rc<RefCell<ParamHeader>>>,
     pub(crate) available_infusions: Vec<Rc<RefCell<ParamHeader>>>,
+    pub(crate) available_affinities: Vec<Affinity>,
 }
 
 impl AddViewModel {
@@ -130,7 +132,7 @@ impl AddViewModel {
                 let weapons: Vec<Rc<RefCell<ItemParam<EquipParamWeapon>>>> = self
                     .weapons
                     .iter()
-                    .filter(ParamFilter::not_infused)
+                    .filter(ParamFilter::weapons_not_infused)
                     .map(|item| item.clone())
                     .collect();
                 Self::init_list(weapons.iter(), filter_text)
@@ -138,7 +140,16 @@ impl AddViewModel {
             ItemType::Armor => Self::init_list(self.armors.iter(), filter_text),
             ItemType::Accessory => Self::init_list(self.talismans.iter(), filter_text),
             ItemType::Item => Self::init_list(self.items.iter(), filter_text),
-            ItemType::Aow => Self::init_list(self.aows.iter(), filter_text),
+            ItemType::Aow => {
+                // Filter out nameless aows
+                let aows: Vec<Rc<RefCell<ItemParam<EquipParamGem>>>> = self
+                    .aows
+                    .iter()
+                    .filter(ParamFilter::aows_nameless)
+                    .map(|item| item.clone())
+                    .collect();
+                Self::init_list(aows.iter(), filter_text)
+            }
         };
         self.current_list.sort_by(|a, b| {
             a.as_ref()
@@ -257,5 +268,25 @@ impl AddViewModel {
         iter.find(|item| Rc::ptr_eq(&item.as_ref().borrow().header, param_header))
             .unwrap()
             .clone()
+    }
+
+    pub(crate) fn infusion_changed(&mut self) {
+        let current_infusion = &mut self.available_infusions[self.selected_infusion];
+        if let Some(gem_param) = self
+            .aows
+            .iter()
+            .find(|item_param| Rc::ptr_eq(&item_param.as_ref().borrow().header, &current_infusion))
+        {
+            self.available_affinities = Affinity::available_affinities(gem_param.clone());
+            let default_affinity = Affinity::default_affinity(gem_param.clone());
+            self.selected_affinity = self
+                .available_affinities
+                .iter()
+                .position(|affinity| affinity == &default_affinity)
+                .unwrap();
+        } else {
+            self.selected_affinity = 0;
+            self.available_affinities = Vec::new();
+        }
     }
 }
