@@ -3,10 +3,8 @@ name: er-save-editor-release
 run-name: Publishing a new release
 
 on:
-  pull_request_target: {}
-  push:
-    tags:
-      - "v*"
+  push: 
+    branches: "release/0.1.0"
 
 jobs:
   build:
