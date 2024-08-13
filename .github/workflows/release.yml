@@ -3,7 +3,7 @@ name: er-save-editor-release
 run-name: Publishing a new release
 
 on:
-  workflow_dispatch: {}
+  pull_request: {}
   push:
     tags:
       - "v*"
